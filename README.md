@@ -12,8 +12,6 @@ Cada carpeta conserva el contenido original de su etapa, sin `.git`, dependencia
 instaladas ni binarios pesados. La documentación de operación y de código está en
 [`docs/`](docs/), y el sitio del proyecto en [`docs/index.html`](docs/index.html).
 
-> **Nota de preservación:** se removieron credenciales, claves o tokens detectados en 1 archivo(s) de esta familia. Los ejemplos y plantillas seguras se conservan.
-
 ## Índice de versiones
 
 | Versión | Qué aporta | Archivos |
@@ -35,6 +33,60 @@ ls docs/
 
 Conectar mal CAN puede dañar el vehículo o la placa. Verificá transceptor, terminación y alimentación antes de energizar.
 
+<!-- ficha -->
+## Ficha de evaluación
+
+**Madurez global: 3.5/5**
+
+| Criterio | Nota | Evidencia |
+|---|---:|---|
+| Madurez | 3/5 | Pipeline completo con tres servicios systemd y más de 320 muestras, pero el bus CAN solo se ejercitó con simulador. |
+| Reproducibilidad | 2/5 | Depende de Ollama, Piper, SQLite y el simulador; no hay CAN físico ni micrófono utilizable en la placa. |
+| Documentación | 5/5 | Ocho documentos técnicos cubren hardware, instalación, consultas, voz, operación y advertencias de conexión. |
+| Honestidad de límites | 5/5 | Declara la ausencia de CAN real, las fallas de audio y que can_logger no se validó en bus físico. |
+| Valor demostrativo | 4/5 | Integra captura, histórico SQLite, consultas en C y alertas por voz, con latencias medidas en frío y caliente. |
+| Facilidad de despliegue | 2/5 | Requiere varios servicios, modelos de Ollama y Piper, y un adaptador USB-CAN que no está resuelto. |
+
+Integración amplia y bien documentada de diagnóstico automotriz local, lastrada por la ausencia de CAN físico y de audio utilizable. Sirve como arquitectura de referencia, no como producto instalable.
+
+## Lo que no funcionó
+
+### JarvisCAN — Sin bus CAN físico
+
+Limitación declarada: el Linux de la placa solo muestra lo, docker0 y wlan0; FDCAN1 en D4 y D5 entrega señales lógicas de 3,3 V, no CANH y CANL, y el core de Arduino no expone CAN estándar. modprobe vcan falla. Todo el pipeline se ejercitó con el simulador y can_logger no se validó en un bus físico.
+
+### JarvisCAN — Audio de la placa inutilizable
+
+El micrófono de los AirPods entregó silencio en mSBC y CVSD, y el micrófono interno dio errores de dispositivo; la salida falla con aplay y pw-cat se cuelga. El audio se reproduce en el teléfono, el navegador o un parlante externo. La voz útil se captura con IP Webcam y se remuestrea a 16 kHz.
+
+### JarvisCAN — Voz robótica y síntesis lenta
+
+La primera alerta usaba espeak-ng y sonaba robótica. Se pasó a Piper y se midieron tres voces: es_AR-daniela tardaba 23,7 s para 5,5 s de audio y se descartó; es_ES-davefx quedó en 4,8 s; se eligió es_MX-claude, con 8,4 s para 7,8 s de habla.
+
+## Preguntas típicas
+
+**¿Es OBD-II estándar?**
+
+Lee CAN/OBD-II, pero el conjunto de señales depende del vehículo.
+
+**¿Necesita Internet?**
+
+No. El diseño es local.
+
+**¿Puede escribir en el bus?**
+
+La documentación se centra en lectura y diagnóstico; no se asume escritura segura.
+
+**¿Qué placa usa?**
+
+Arduino UNO Q.
+
+**¿Las alertas son configurables?**
+
+Sí, los umbrales y mensajes están en la documentación y el código.
+
+<!-- /ficha -->
+
 ## Documentación
 
 - [`docs/datasheet.md`](docs/datasheet.md) — instalación, operación y límites.
@@ -42,11 +94,11 @@ Conectar mal CAN puede dañar el vehículo o la placa. Verificá transceptor, te
 - [`docs/REFERENCES.md`](docs/REFERENCES.md) — estándares, librerías y fuentes.
 - [`docs/index.html`](docs/index.html) — página del proyecto (GitHub Pages).
 
-## Alcance y honestidad
+## El proyecto en detalle
 
 <div align="center">
 
-## JarvisCAN
+### JarvisCAN
 
 **Telemetría automotriz offline sobre Arduino UNO Q: CAN/OBD-II → SQLite → consultas en C → alertas por voz → panel web.**
 
